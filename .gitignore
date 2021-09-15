@@ -1,0 +1,9 @@
+
+auto-save-list/
+eshell/
+elpa/
+transient/
+history
+ac-comphist.dat
+*.elc
+custom.el
