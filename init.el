@@ -455,34 +455,47 @@
     )
 )
 
-(leaf markdown-mode
-  :doc "Major mode for Markdown-formatted text"
-  ;; ------------------------------
-  ;;   key-bind
-  ;;     TAB:          見出しやツリーの折り畳み
-  ;;     C-c C-n:      次の見出しに移動
-  ;;     C-c C-p:      前の見出しに移動
-  ;;     C-c ← →:    見出しレベルの上げ下げ
-  ;;     C-c ↑ ↓:    見出しの移動
-  ;;     M-S-Enter:    見出しの追加
-  ;;     M-Enter:      リストの追加
-  ;;     C-c C-d:      TODOの追加(トグル)
-  ;;     C-c ':        コードブロックでmode編集
-  ;;     C-c C-x ENTER バッファ内で整形表示
-  ;;     C-c C-c p     ブラウザで表示
-  ;; ------------------------------
-  :req "emacs-25.1"
-  :tag "itex" "github flavored markdown" "markdown" "emacs>=25.1"
-  :url "https://jblevins.org/projects/markdown-mode/"
-  :added "2021-09-15"
-  :emacs>= 25.1
-  :ensure t
-  :custom
-  ((markdown-preview-stylesheets . '(list "~/.emacs.d/css/github.css")))
+(leaf markdown
   :config
-  (autoload 'markdown-mode "markdown-mode" "Major mode for editing Markdown files" t)
-  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+  (leaf markdown-mode
+    :doc "Major mode for Markdown-formatted text"
+    ;; ------------------------------
+    ;;   key-bind
+    ;;     TAB:          見出しやツリーの折り畳み
+    ;;     C-c C-n:      次の見出しに移動
+    ;;     C-c C-p:      前の見出しに移動
+    ;;     C-c ← →:    見出しレベルの上げ下げ
+    ;;     C-c ↑ ↓:    見出しの移動
+    ;;     M-S-Enter:    見出しの追加
+    ;;     M-Enter:      リストの追加
+    ;;     C-c C-d:      TODOの追加(トグル)
+    ;;     C-c ':        コードブロックでmode編集
+    ;;     C-c C-x ENTER バッファ内で整形表示
+    ;;     C-c C-c p     ブラウザで表示
+    ;; ------------------------------
+    :req "emacs-25.1"
+    :tag "itex" "github flavored markdown" "markdown" "emacs>=25.1"
+    :url "https://jblevins.org/projects/markdown-mode/"
+    :added "2021-09-15"
+    :emacs>= 25.1
+    :ensure t
+    :leaf-defer t
+    :mode ("\\.md\\'" . gfm-mode)
+    :custom
+    (markdown-command . "github-markup")
+    (markdown-command-needs-filename . t)
+    (markdown-preview-stylesheets . '(list "~/.emacs.d/css/github.css"))
+    :config
+    (autoload 'markdown-mode "markdown-mode" "Major mode for editing Markdown files" t)
+  )
+  (leaf markdown-preview-mode
+    :ensure t)
+)
+
+(leaf yaml-mode
+  :ensure t
+  :leaf-defer t
+  :mode ("\\.yaml\\'" . yaml-mode)
 )
 
 (leaf elpy
@@ -548,6 +561,36 @@
   :config
   (global-set-key (kbd "<zenkaku-hankaku>") 'toggle-input-method)
 )
+
+(leaf rainbow-delimiters
+  :doc "Highlight brackets according to their depth"
+  :tag "tools" "lisp" "convenience" "faces"
+  :url "https://github.com/Fanael/rainbow-delimiters"
+  :added "2021-09-15"
+  :ensure t
+  :leaf-defer t
+  :hook
+  (prog-mode-hook . rainbow-delimiters-mode)
+)
+
+(leaf fontawesome
+  :doc "fontawesome utility"
+  :req "emacs-24.4"
+  :tag "emacs>=24.4"
+  :url "https://github.com/syohex/emacs-fontawesome"
+  :added "2021-09-15"
+  :emacs>= 24.4
+  :ensure t)
+
+(leaf codic
+  :doc "Search Codic (codic.jp) naming dictionaries"
+  :req "emacs-24" "cl-lib-0.5"
+  :tag "emacs>=24"
+  :url "https://github.com/syohex/emacs-codic"
+  :added "2021-09-15"
+  :emacs>= 24
+  :ensure t
+  :leaf-defer t)
 
 (leaf whitespace
   :doc "minor mode to visualize TAB, (HARD) SPACE, NEWLINE"
