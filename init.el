@@ -653,17 +653,63 @@
    (modus-themes-region . 'bg-only)
    (modus-themes-diffs . 'deuteranopia)
    (modus-themes-org-blocks . 'gray-background)
-   (modus-themes-variable-pitch-ui . t)
-   (modus-themes-variable-pitch-headings . t)
+   ;; (modus-themes-variable-pitch-ui . t)
+   ;; (modus-themes-variable-pitch-headings . t)
    (modus-themes-scale-headings . t)
-   (modus-themes-scale-1 . 1.1)
-   (modus-themes-scale-2 . 1.15)
-   (modus-themes-scale-3 . 1.21)
-   (modus-themes-scale-4 . 1.27)
-   (modus-themes-scale-title . 1.33))
+
+   ;; (modus-themes-scale-1 . 1.1)
+   ;; (modus-themes-scale-2 . 1.15)
+   ;; (modus-themes-scale-3 . 1.21)
+   ;; (modus-themes-scale-4 . 1.27)
+   ;; (modus-themes-scale-title . 1.33)
+  )
   :config
   (modus-themes-load-themes)
   (modus-themes-load-vivendi)
+)
+
+;; (leaf doom-modeline
+;;   :doc "A minimal and modern mode-line"
+;;   :req "emacs-25.1" "all-the-icons-2.2.0" "shrink-path-0.2.0" "dash-2.11.0"
+;;   :tag "mode-line" "faces" "emacs>=25.1"
+;;   :url "https://github.com/seagle0128/doom-modeline"
+;;   :added "2021-09-16"
+;;   :emacs>= 25.1
+;;   :ensure t
+;;   :require t
+;;   :after all-the-icons shrink-path
+;;   :config
+;;   (doom-modeline-mode 1)
+;; )
+
+(leaf moody
+  :doc "Tabs and ribbons for the mode line"
+  :req "emacs-25.3"
+  :tag "emacs>=25.3"
+  :url "https://github.com/tarsius/moody"
+  :added "2021-09-16"
+  :emacs>= 25.3
+  :ensure t
+  :custom
+  ((x-underline-at-descent-line . t))
+  :config
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode)
+)
+
+(leaf minions
+  :doc "A minor-mode menu for the mode line"
+  :req "emacs-25.2"
+  :tag "emacs>=25.2"
+  :url "https://github.com/tarsius/minions"
+  :added "2021-09-16"
+  :emacs>= 25.2
+  :ensure t
+  :require t
+  :init
+  (minions-mode)
+  :custom
+  ((minions-mode-line-lighter . "[+]"))
 )
 
 ;; My Settings ends
