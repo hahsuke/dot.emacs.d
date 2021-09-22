@@ -101,7 +101,7 @@
   (global-set-key "\C-h" 'delete-backward-char)
   (global-set-key "\M-g" 'goto-line)
   (global-set-key "\C-x\C-b" 'buffer-menu)
-
+  (global-set-key (kbd "<f12>") 'eshell)
   (global-unset-key "\C-z")
 )
 
@@ -319,30 +319,57 @@
   (global-set-key [(control ?\:)] 'my-insert-time)
 )
 
-(leaf auto-complete
-  :doc "Auto Completion for GNU Emacs"
-  :req "popup-0.5.0" "cl-lib-0.5"
-  :tag "convenience" "completion"
-  :url "https://github.com/auto-complete/auto-complete"
-  :added "2021-09-15"
+;; (leaf auto-complete
+;;   :doc "Auto Completion for GNU Emacs"
+;;   :req "popup-0.5.0" "cl-lib-0.5"
+;;   :tag "convenience" "completion"
+;;   :url "https://github.com/auto-complete/auto-complete"
+;;   :added "2021-09-15"
+;;   :ensure t
+;;   :require t
+;;   :config
+;;   (global-auto-complete-mode t)
+;; )
+
+;; (leaf auto-complete-config
+;;   :require t
+;;   :after auto-complete
+;;   :config
+;;   (add-to-list 'ac-modes 'text-mode)         ;; enable text-mode by auto
+;;   (add-to-list 'ac-modes 'fundamental-mode)  ;; fundamental-mode
+;;   (add-to-list 'ac-modes 'org-mode)
+;;   (ac-set-trigger-key "TAB")
+;;   :custom
+;;   ((ac-use-menu-map . t)                   ;; display candidate on menu by C-n/C-p
+;;    (ac-use-fuzzy . t))                      ;; match vague
+;; )
+
+(leaf company
   :ensure t
-  :require t
-  :config
-  (global-auto-complete-mode t)
-
-)
-
-(leaf auto-complete-config
-  :require t
-  :after auto-complete
-  :config
-  (add-to-list 'ac-modes 'text-mode)         ;; enable text-mode by auto
-  (add-to-list 'ac-modes 'fundamental-mode)  ;; fundamental-mode
-  (add-to-list 'ac-modes 'org-mode)
-  (ac-set-trigger-key "TAB")
+  :leaf-defer nil
+  :blackout company-mode
+  :bind
+  ((company-active-map
+    ("M-n" . nil)
+    ("M-p" . nil)
+    ("C-s" . company-filter-candidates)
+    ("C-n" . company-select-next)
+    ("C-p" . company-select-previous)
+    ("C-i" . company-complete-selection))
+   (company-search-map
+    ("C-n" . company-select-next)
+    ("C-p" . company-select-previous)))
   :custom
-  ((ac-use-menu-map . t)                   ;; display candidate on menu by C-n/C-p
-   (ac-use-fuzzy . t))                      ;; match vague
+  ((company-tooltip-limit         . 12)
+   (company-idle-delay            . 0) ;; 補完の遅延なし
+   (company-minimum-prefix-length . 1) ;; 1文字から補完開始
+   (company-transformers          . '(company-sort-by-occurrence))
+   (global-company-mode           . t)
+   (company-selection-wrap-around . t)
+   (company-require-match         . 'never))
+  ;; :config
+  ;; (global-set-key (kbd "TAB") 'company-complete-common-or-cycle)
+  ;; (push 'company-preview-common-frontend company-frontends)
 )
 
 (leaf dired
@@ -498,30 +525,108 @@
   :mode ("\\.yaml\\'" . yaml-mode)
 )
 
-(leaf elpy
-  :doc "Emacs Python Development Environment"
-  :req "company-0.9.2" "emacs-24.4" "highlight-indentation-0.5.0" "pyvenv-1.3" "yasnippet-0.8.0" "s-1.11.0"
-  :tag "tools" "languages" "ide" "python" "emacs>=24.4"
-  :url "https://github.com/jorgenschaefer/elpy"
-  :added "2021-09-15"
-  :emacs>= 24.4
+(leaf flycheck
+  :doc "On-the-fly syntax checking"
+  :req "dash-2.12.1" "pkg-info-0.4" "let-alist-1.0.4" "seq-1.11" "emacs-24.3"
+  :tag "tools" "languages" "convenience" "emacs>=24.3"
+  :url "http://www.flycheck.org"
+  :added "2021-09-22"
+  :emacs>= 24.3
   :ensure t
-  :after company highlight-indentation pyvenv yasnippet
-  :init
-  (elpy-enable)
-  :custom
-  ((elpy-rpc-backend . "jedi")) ; or 'jedi'
-  :preface
-  (defun exec-python nil
-    "Use compile to run python programs"
-    (interactive)
-    (compile (concat "python " (buffer-file-name))))
+  :hook (prog-mode-hook . flycheck-mode)
+  :custom ((flycheck-display-errors-delay . 0.3))
   :config
-  (add-hook 'elpy-mode-hook (lambda ()
-                              (auto-complete-mode -1)
-                              ;; (py-yapf-enable-on-save)
-                              ;; (define-key elpy-mode-map "\C-c\C-c" 'exec-python)
-                              (highlight-indentation-mode -1)))
+  (leaf flycheck-inline
+    :ensure t
+    :hook (flycheck-mode-hook . flycheck-inline-mode))
+  (leaf flycheck-color-mode-line
+    :ensure t
+    :hook (flycheck-mode-hook . flycheck-color-mode-line-mode))
+)
+
+(leaf python
+  ;; :custom
+  ;; (python-indent-guess-indent-offset-verbose . nil)
+  :config
+  ;; (leaf python-mode
+  ;;   :doc "Python major mode"
+  ;;   :tag "oop" "python" "processes" "languages"
+  ;;   :url "https://gitlab.com/groups/python-mode-devs"
+  ;;   :added "2021-09-22"
+  ;;   :ensure t
+  ;;   :require t
+  ;; )
+  (leaf elpy
+    :doc "Emacs Python Development Environment"
+    :req "company-0.9.2" "emacs-24.4" "highlight-indentation-0.5.0" "pyvenv-1.3" "yasnippet-0.8.0" "s-1.11.0"
+    :tag "tools" "languages" "ide" "python" "emacs>=24.4"
+    :url "https://github.com/jorgenschaefer/elpy"
+    :added "2021-09-15"
+    :emacs>= 24.4
+    :ensure t
+    ;:after python-mode company highlight-indentation pyvenv yasnippet
+    :init
+    (elpy-enable)
+    :custom
+    ((elpy-rpc-backend . "jedi")) ; or 'jedi'
+    :preface
+    (defun exec-python nil
+      "Use compile to run python programs"
+      (interactive)
+    (compile (concat "python " (buffer-file-name))))
+    :hook
+    ((python-mode . elpy-enable)
+     (elpy-mode-hook . flycheck-mode))
+    :config
+    (remove-hook 'elpy-modules 'elpy-module-highlight-indentation) ;; インデントハイライトの無効化
+    (remove-hook 'elpy-modules 'elpy-module-flymake) ;; flymakeの無効化
+    (add-hook 'elpy-mode-hook (lambda ()
+                                (auto-complete-mode -1)
+                                (py-yapf-enable-on-save)
+                               ;(define-key elpy-mode-map "\C-c\C-c" 'exec-python)
+                               ;(highlight-indentation-mode -1))
+                                ))
+  )
+  (leaf pipenv
+    :doc "A Pipenv porcelain"
+    :req "emacs-25.1" "s-1.12.0" "pyvenv-1.20"
+    :tag "emacs>=25.1"
+    :url "https://github.com/pwalsh/pipenv.el"
+    :added "2021-09-22"
+    :emacs>= 25.1
+    :ensure t
+    :after pyvenv python
+    :require t
+    :defvar python-shell-interpreter python-shell-interpreter-args python-shell-virtualenv-root pyvenv-activate
+    :defun pipenv--force-wait pipenv-deactivate pipenv-projectile-after-switch-extended pipenv-venv
+    :custom
+    (pipenv-projectile-after-switch-function . #'pipenv-projectile-after-switch-extended)
+    :init
+    (defun pipenv-auto-activate ()
+      (pipenv-deactivate)
+      (pipenv--force-wait (pipenv-venv))
+      (when python-shell-virtualenv-root
+        (setq-local pyvenv-activate (directory-file-name python-shell-virtualenv-root))
+        (setq-local python-shell-interpreter "pipenv")
+        (setq-local python-shell-interpreter-args "run python")
+      ))
+    :hook (elpy-mode-hook . pipenv-auto-activate)
+    :config
+    (pyvenv-tracking-mode)
+    (add-to-list 'python-shell-completion-native-disabled-interpreters "pipenv")
+  )
+  (leaf ein :ensure t)
+)
+
+(leaf fuzzy
+  :doc "Fuzzy Matching"
+  :req "emacs-24.3"
+  :tag "convenience" "emacs>=24.3"
+  :url "https://github.com/auto-complete/fuzzy-el"
+  :added "2021-09-22"
+  :emacs>= 24.3
+  :ensure t
+  :require t
 )
 
 (leaf py-yapf
