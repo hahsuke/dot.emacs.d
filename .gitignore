@@ -7,6 +7,7 @@ el-get/
 transient/
 history
 ac-comphist.dat
+network-security.data
 *.elc
 custom.el
 mysnippets/

@@ -72,7 +72,7 @@
   :custom `((custom-file . ,(locate-user-emacs-file "custom.el"))))
 
 ;; ---------------------------------------------------------
-;;  My Setting
+;;  My Setting / 個人設定
 ;;   after edit, re byte-compile
 ;;   $ emacs --batch -f batch-byte-compile init.el
 
@@ -81,22 +81,23 @@
 ;; )
 
 (leaf my-settings
+  :doc "基本設定"
   :load-path "~/.emacs.d/site-lisp"
   :custom
-  ((make-backup-files . nil)
-   (indent-tabs-mode . nil)
-   (tab-width . 4)
-   (line-spacing . 0) ; row-space
-  )
+  ((make-backup-files . nil)         ; バックアップファイルを作成しない
+   (indent-tabs-mode . nil)          ; TabはSpaceに
+   (tab-width . 4)                   ; Tab幅
+   (line-spacing . 0))               ; row-space
   :config
-  (set-language-environment "UTF-8")
-  (electric-indent-mode -1) ; invert C-j and Return key
-  (show-paren-mode t) ; hi-light bracket((), {}...)
-  (icomplete-mode 1)
-  (fset 'yes-or-no-p 'y-or-n-p)
+  (set-language-environment "UTF-8") ;
+  (electric-indent-mode -1)          ; invert C-j and Return key
+  (show-paren-mode t)                ; hi-light bracket((), {}...)
+  (icomplete-mode 1)                 ;
+  (fset 'yes-or-no-p 'y-or-n-p)      ; Yes/No to y/n
 )
 
 (leaf my-key-bindings
+  :doc "キー設定"
   :config
   (global-set-key "\C-h" 'delete-backward-char)
   (global-set-key "\M-g" 'goto-line)
@@ -106,23 +107,22 @@
 )
 
 (leaf my-disp-settings
+  :doc "表示関連"
   :custom
-  (inhibit-startup-screen . t)
+  ((inhibit-startup-screen . t)
+   (line-number-mode . t)             ; 行位置表示
+   (column-number-mode . t))          ; 列位置表示
   :config
-  (line-number-mode t)
-  (column-number-mode t)
+  (tool-bar-mode  -1)                 ; Toolバー無効
+  (menu-bar-mode  -1)                 ; Menuバー無効
   (setcar mode-line-position
-          '(:eval (format "%d"
-                          (count-lines
-                           (point-max)
-                           (point-min)))))
-  (tool-bar-mode -1)
-  (menu-bar-mode -1)
+          '(:eval (format "%d" (count-lines (point-max) (point-min)))))
   (set-scroll-bar-mode nil)
   (setq frame-title-format (format "%%f - Emacs@%s" (system-name)))
 )
 
 (leaf exec-path-from-shell
+  ;; 環境設定PATHをEmacsに引き継ぐ
   :doc "Get environment variables such as $PATH from the shell"
   :req "emacs-24.1" "cl-lib-0.6"
   :tag "environment" "unix" "emacs>=24.1"
@@ -137,6 +137,7 @@
 )
 
 (leaf windmove
+  ;; Alt+CursorでWindow移動
   :doc "directional window-selection routines"
   :tag "builtin"
   :added "2021-09-15"
@@ -147,6 +148,7 @@
 )
 
 (leaf cua-mode
+  :doc "矩形選択"
   :init
   (cua-mode t)
   :custom
@@ -163,8 +165,7 @@
   :custom
   ((uniquify-buffer-name-style . 'post-forward-angle-brackets)
    (uniquify-ignore-buffers-re .  "*[^*]+*") ;; correspond to change the buffername.
-   (uniquify-min-dir-content . 1) ;; display if the same file is not opned.
-  )
+   (uniquify-min-dir-content . 1)) ;; display if the same file is not opned.
 )
 
 (leaf vertico
@@ -236,6 +237,7 @@
   :ensure t)
 
 (leaf elscreen
+  ;; 仮想Window
   :doc "Emacs window session manager"
   :req "emacs-24"
   :tag "convenience" "window" "emacs>=24"
@@ -284,7 +286,7 @@
   :require t
   :config
   (if (eq system-type 'gnu/linux)
-      (setq junk-dir-root "~/win_home/notes/junk")
+      (setq junk-dir-root "~/win_home/docs/Notes/junks")
       (setq junk-dir-root "~/works/notes/junk"))
   (setq open-junk-file-format (concat junk-dir-root "/%y%m%d-%H%M%S."))
   (global-set-key "\C-xj" 'open-junk-file)
@@ -401,6 +403,54 @@
         '((size-time  . (user group size time))
           (all        . (perms links user group size time))
           (no-details . ())))
+)
+
+;; --------------------
+;; User Windows Shortcuts
+(leaf ls-lisp
+  :doc "emulate insert-directory completely in Emacs Lisp"
+  :tag "builtin" "dired" "unix"
+  :added "2021-11-10"
+  :require t
+  :config
+  ;; ls-lisp を使う
+  ;; (setq ls-lisp-use-insert-directory-program nil)
+  ;; dired の並び順を Explorer と同じにする
+  ;; (setq ls-lisp-ignore-case t)          ; ファイル名の大文字小文字無視でソート
+  ;; (setq ls-lisp-dirs-first t)           ; ディレクトリとファイルを分けて表示
+  ;; (setq dired-listing-switches "-alG")  ; グループ表示なし
+  ;; (setq ls-lisp-UCA-like-collation nil) ; for 25.1 or later
+)
+
+(leaf noflet
+  :doc "locally override functions"
+  :added "2021-11-10"
+  :ensure t
+  :require t
+  :config
+  ;; dired でショートカットのターゲット名を表示するように対策する
+  ;; (advice-add 'ls-lisp-insert-directory
+  ;;             :around
+  ;;             (lambda (orig-fun &rest args)
+  ;;               (noflet ((directory-files-and-attributes
+  ;;                         (&rest args2)
+  ;;                         (mapcar (lambda (x) (set-attr-symlink x) x)
+  ;;                                 (apply this-fn args2))))
+  ;;                       (apply orig-fun args))))
+
+  ;; (advice-add  'ls-lisp-format
+  ;;              :before
+  ;;              (lambda (&rest args)
+  ;;                (set-attr-symlink (cons (nth 0 args) (nth 1 args)))))
+
+  ;; dired でファイル名を取得する際、ショートカットのターゲット名を返すように対策する
+  ;; (advice-add 'dired-get-file-for-visit
+  ;;             :filter-return
+  ;;             (lambda (return-value)
+  ;;               (let ((file-name (w32-symlinks-parse-symlink return-value)))
+  ;;                 (if file-name
+  ;;                     (expand-file-name file-name)
+  ;;                   return-value))))
 )
 
 (leaf yasnippet
@@ -576,13 +626,14 @@
     (compile (concat "python " (buffer-file-name))))
     :hook
     ((python-mode . elpy-enable)
-     (elpy-mode-hook . flycheck-mode))
+     ;(elpy-mode-hook . flycheck-mode)
+    )
     :config
     (remove-hook 'elpy-modules 'elpy-module-highlight-indentation) ;; インデントハイライトの無効化
     (remove-hook 'elpy-modules 'elpy-module-flymake) ;; flymakeの無効化
     (add-hook 'elpy-mode-hook (lambda ()
                                 (auto-complete-mode -1)
-                                (py-yapf-enable-on-save)
+                               ;(py-yapf-enable-on-save)
                                ;(define-key elpy-mode-map "\C-c\C-c" 'exec-python)
                                ;(highlight-indentation-mode -1))
                                 ))
@@ -629,15 +680,15 @@
   :require t
 )
 
-(leaf py-yapf
-  :doc "Use yapf to beautify a Python buffer"
-  :url "https://github.com/paetzke/py-yapf.el"
-  :added "2021-09-15"
-  :ensure t
-  :require t
-  :config
-  (add-hook 'python-mode-hook 'py-yapf-enable-on-save)
-)
+;; (leaf py-yapf
+;;   :doc "Use yapf to beautify a Python buffer"
+;;   :url "https://github.com/paetzke/py-yapf.el"
+;;   :added "2021-09-15"
+;;   :ensure t
+;;   :require t
+;;   :config
+;;   (add-hook 'python-mode-hook 'py-yapf-enable-on-save)
+;; )
 
 (leaf gui-settings
   :if window-system
@@ -817,6 +868,64 @@
   ((minions-mode-line-lighter . "[+]"))
 )
 
+(leaf windows-path
+  :doc "Can use winsows format path."
+  :config
+   (require 'cl-lib)
+   (defun set-drvfs-alist ()
+     (interactive)
+     (setq drvfs-alist
+           (mapcar (lambda (x)
+                     (when (string-match "\\(.*\\)|\\(.*?\\)/?$" x)
+                       (cons (match-string 1 x) (match-string 2 x))))
+                   (split-string (concat
+                                  ;; //wsl$ or //wsl.localhost パス情報の追加
+                                  (when (or (not (string-match "Microsoft" (shell-command-to-string "uname -v")))
+                                            (>= (string-to-number (nth 1 (split-string operating-system-release "-"))) 18362))
+                                    (concat "/|" (shell-command-to-string "wslpath -m /")))
+                                  (shell-command-to-string
+                                   (concat
+                                    "mount | grep -E 'type (drvfs|cifs)' | sed -r 's/(.*) on (.*) type (drvfs|cifs) .*/\\2\\|\\1/' | sed 's!\\\\!/!g';"
+                                    "mount | grep 'aname=drvfs;' | sed -r 's/.* on (.*) type 9p .*;path=([^;]*);.*/\\1|\\2/' | sed 's!\\\\!/!g' | sed 's!|UNC/!|//!' | sed \"s!|UNC\\(.\\)!|//\\$(printf '%o' \\\\\\'\\1)!\" | sed 's/.*/echo \"&\"/' | sh")))
+                                 "\n" t))))
+
+   (set-drvfs-alist)
+
+   (defconst windows-path-style-regexp "\\`\\(.*/\\)?\\([a-zA-Z]:\\\\.*\\|[a-zA-Z]:/.*\\|\\\\\\\\.*\\|//.*\\)")
+
+   (defun windows-path-convert-file-name (name)
+     (setq name (replace-regexp-in-string windows-path-style-regexp "\\2" name t nil))
+     (setq name (replace-regexp-in-string "\\\\" "/" name))
+     (let ((case-fold-search t))
+       (cl-loop for (mountpoint . source) in drvfs-alist
+                if (string-match (concat "^\\(" (regexp-quote source) "\\)\\($\\|/\\)") name)
+                return (replace-regexp-in-string "^//" "/" (replace-match mountpoint t t name 1))
+                finally return name)))
+
+   (defun windows-path-run-real-handler (operation args)
+     "Run OPERATION with ARGS."
+     (let ((inhibit-file-name-handlers
+            (cons 'windows-path-map-drive-hook-function
+                  (and (eq inhibit-file-name-operation operation)
+                       inhibit-file-name-handlers)))
+           (inhibit-file-name-operation operation))
+       (apply operation args)))
+
+   (defun windows-path-map-drive-hook-function (operation name &rest args)
+     "Run OPERATION on cygwin NAME with ARGS."
+     (windows-path-run-real-handler
+      operation
+      (cons (windows-path-convert-file-name name)
+            (if (stringp (car args))
+                (cons (windows-path-convert-file-name (car args))
+                      (cdr args))
+              args))))
+
+   (add-to-list 'file-name-handler-alist
+                (cons windows-path-style-regexp
+                      'windows-path-map-drive-hook-function))
+)
+
 ;; My Settings ends
 ;; ----
 
@@ -824,4 +933,4 @@
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; init.el ends here
+;;; Init.el ends here
